@@ -25,7 +25,7 @@ app.post('/signup',(req,res)=>{
       data.HASH=0;
     }
     res.end(JSON.stringify(data));
-});
+  });
 function handleCheckIn(req){
   data={}
   state=db_con.checkIdentity(req.body.seed,req.body.hash);
@@ -66,6 +66,7 @@ app.post('/checktoday',(req,res)=>{
       state=false;
     }
   }
+
   if(!state){
     data.state=false;
     data.type='err_no_enough_data'
@@ -77,6 +78,7 @@ app.post('/checktoday',(req,res)=>{
     }else{
       data=handleCheckOut(req);
     }
+    console.log(data);
   }
   res.end(JSON.stringify(data));
 });

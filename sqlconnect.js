@@ -47,15 +47,12 @@ function createTables() {
 }
 function count_rows(table_name){
   var num=0;
-  console.log(`SELECT COUNT(*) AS 'cnt' FROM ${table_name}`)
   num=db.prepare(`SELECT COUNT(*) AS 'cnt' FROM ${table_name}`).get();
   num=num.cnt;
-  console.log(num);
   return num;
 }
 function insertUser(user) {
   ID=count_rows('USERS');
-  console.log(ID);
   db.exec(`INSERT INTO USERS VALUES(${ID},'${user.NAME}','${user.MNAME}','${user.LNAME}','${user.NATIONAL_NUMBER}','${user.PHONENUMBER}','${user.GENDER}','${user.PASSWORD}')`);
   return newHash(ID);
 }
@@ -80,14 +77,12 @@ function newHash(ID){
   return i;
 }
 function checkIdentity(seed,hash){
-  data=[]
+  var data=[]
   for(i=0;i<3;i++){
     data.push(seed%60+1);
     seed=Math.floor(seed/60);
   }
-  console.log(data);
   hash=(hmake.powll(data[2],hmake.MD-2)*BigInt(hash-(data[0]*data[1])))%BigInt(hmake.MD);
-  console.log(hash)
   res= db.prepare(`SELECT ID FROM HASHES WHERE HASH=${hash}`).get();
   if(res==undefined)
   return -1;
