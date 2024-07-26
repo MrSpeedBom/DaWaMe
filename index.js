@@ -1,19 +1,24 @@
 function print(a){console.log(a);}
-const express = require('express')
+const express = require('express');
+const { stringify } = require('querystring');
 db_con=require('./sqlconnect');
+ip=require("ip");
+const cors = require("cors");
 
+path=require('path');
 const app = express()
 app.use(express.json());
+app.use(cors());
 const port = 3000
 
-datasample={NAME:'',MNAME:'',LNAME:'',NATIONAL_NUMBER:'',PHONENUMBER:'',GENDER:'',PASSWORD:''};
+user_data_sample={NAME:'',MNAME:'',LNAME:'',NATIONAL_NUMBER:'',PHONENUMBER:'',GENDER:'',PASSWORD:''};
 app.post('/signup',(req,res)=>{
     print('got signup request!');
     state=true;
-    for(key in datasample){
+    for(key in user_data_sample){
       if(!req.body.hasOwnProperty(key)){
         state=false;
-      }
+      } 
     }
     data={};
     data.state=state;
@@ -26,42 +31,47 @@ app.post('/signup',(req,res)=>{
     }
     res.end(JSON.stringify(data));
   });
+app.get('/local_ip',(req,res)=>{
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  data={}
+  data.ip=ip.address();
+  data.port=port;
+  res.end(JSON.stringify(data));
+})
 function handleCheckIn(req){
   data={}
-  state=db_con.checkIdentity(req.body.seed,req.body.hash);
-  if(state==-1){
-    data.state=false;
-    data.type='err_user_unveryfied';
-  }else{
+  if(db_con.checUser(req.body.ID)){
     data.state=db_con.insertCheckIn(state);
     if(data.state)
     data.type='ok';
     else
     data.type='err_checkin_exists';
+  }else{
+    data.state=false;
+    data.type='err_no_such_user';
   }
   return data;
 }
 function handleCheckOut(req){
   data={}
-  state=db_con.checkIdentity(req.body.seed,req.body.hash);
-  if(state==-1){
-    data.state=false;
-    data.type='err_user_unveryfied';
-  }else{
+  if(db_con.checkUser(req.body.ID)){
     data.state=db_con.insertCheckIn(state);
     if(data.state)
     data.type='ok';
     else
     data.type='err_checkin_exists';
+  }else{
+    data.state=false;
+    data.type='err_no_such_user';
   }
   return data;
 }
-checksample={seed:0,hash:0};
+check_sample={ID:0,type:0};
 app.post('/checktoday',(req,res)=>{
   print('got check request!');
   data={};
   state=true;
-  for(key in checksample){
+  for(key in check_sample){
     if(!req.body.hasOwnProperty(key)){
       state=false;
     }
@@ -73,7 +83,7 @@ app.post('/checktoday',(req,res)=>{
   }else{
     //todo:
     //here we must specify a time for checking in and out
-    if(true){
+    if(req.type==1){
       data=handleCheckIn(req);
     }else{
       data=handleCheckOut(req);
@@ -88,11 +98,10 @@ app.post('/signin',(req,res)=>{
   print('got signin request!');
   print(req.body);
   data={};
-
   res.end(JSON.stringify(data));
 });
 
 db_con.connect('./unidb.db');
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`DaWaMe server listening on port ${port}`)
 })
