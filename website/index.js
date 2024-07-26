@@ -8,3 +8,20 @@ function synchronousRequest(url) {
        throw new Error('Request failed: ' + xhr.statusText);
     }
  }
+ function cypher(str,key){
+   return str;
+   arr=[]
+   karr=[]
+   for(i=0;i<str.length;i++){
+       arr.push(str.charCodeAt(i));
+   } 
+   for(i=0;i<key.length;i++){
+       karr.push(key.charCodeAt(i));
+   }
+   for(i=0;i<arr.length;i++){
+       arr[i]=arr[i]^karr[i%karr.length];
+   }
+   console.log(arr);
+   res=String.fromCharCode(arr);
+   return res;
+}
