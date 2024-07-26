@@ -16,7 +16,7 @@
                 <td><input id="name" type="text" placeholder="اسم الموظف" style="text-align:right;"/></td>
             </tr>
             <tr style ="width:100%">
-                <td><select id="gender" style="width:100%; height:100%; text-align:center;box-sizing: border-box;" name="الجنس"><option value="1">ذكر</option><option value="2">انثى</option></select></td>
+                <td><select id="gender" style="width:100%; height:100%; text-align:center;box-sizing: border-box;" name="الجنس"><option value="M">ذكر</option><option value="F">انثى</option></select></td>
                 <td><input id="national_number" type="number" placeholder="الرقم الوطني"></td>
                 <td><input id="phone_number" type="number" placeholder="رقم الهاتف"></td>
             </tr>
@@ -30,20 +30,19 @@
     <script type="text/javascript">
         qrcode=new QRCode(document.getElementById("qrcode"), "empty");
         function change_qr_content(){
-          text="";
-          text+=document.getElementById("name").value+"\n";
-          text+=document.getElementById("father_name").value+"\n";
-          text+=document.getElementById("last_name").value+"\n";
-          text+=document.getElementById("phone_number").value+"\n";
-          text+=document.getElementById("national_number").value+"\n";
-          text+=document.getElementById("gender").value+"\n";
-          
+          text=cypher('dawame','DaWaMe')+'\n';
+          text+=cypher(document.getElementById("name").value,'DaWaMe')+"\n";
+          text+=cypher(document.getElementById("father_name").value,'DaWaMe')+"\n";
+          text+=cypher(document.getElementById("last_name").value,'DaWaMe')+"\n";
+          text+=cypher(document.getElementById("phone_number").value,'DaWaMe')+"\n";
+          text+=cypher(document.getElementById("national_number").value,'DaWaMe')+"\n";
+          text+=cypher(document.getElementById("gender").value,'DaWaMe')+"\n";
           try {
              const url = 'http://127.0.0.1:3000/local_ip';
              const responseData = synchronousRequest(url);
              console.log('Response data:', responseData);
-             text+=JSON.parse(responseData).ip+"\n";
-             text+=JSON.parse(responseData).port;
+             text+=cypher(JSON.parse(responseData).ip,'DaWaMe')+"\n";
+             text+=cypher(JSON.parse(responseData).port,'DaWaMe')+"\n";
           } catch (error) {
              console.error('Error:', error.message);
           }
