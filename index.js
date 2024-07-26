@@ -11,12 +11,14 @@ app.use(express.json());
 app.use(cors());
 const port = 3000
 
-user_data_sample={NAME:'',MNAME:'',LNAME:'',NATIONAL_NUMBER:'',PHONENUMBER:'',GENDER:'',PASSWORD:''};
+user_data_sample={NAME:'',MNAME:'',LNAME:'',NATIONAL_NUMBER:'',PHONE_NUMBER:'',GENDER:'' };
 app.post('/signup',(req,res)=>{
     print('got signup request!');
     state=true;
+    console.log(req.body);
     for(key in user_data_sample){
       if(!req.body.hasOwnProperty(key)){
+        console.log(key);
         state=false;
       } 
     }
@@ -37,7 +39,7 @@ app.get('/local_ip',(req,res)=>{
   data.ip=ip.address();
   data.port=port;
   res.end(JSON.stringify(data));
-})
+});
 function handleCheckIn(req){
   data={}
   if(db_con.checUser(req.body.ID)){
@@ -83,7 +85,7 @@ app.post('/checktoday',(req,res)=>{
   }else{
     //todo:
     //here we must specify a time for checking in and out
-    if(req.type==1){
+    if(req.body.type==1){
       data=handleCheckIn(req);
     }else{
       data=handleCheckOut(req);
@@ -93,14 +95,6 @@ app.post('/checktoday',(req,res)=>{
   res.end(JSON.stringify(data));
 });
 //todo:
-//sign in to your account with username and password 
-app.post('/signin',(req,res)=>{
-  print('got signin request!');
-  print(req.body);
-  data={};
-  res.end(JSON.stringify(data));
-});
-
 db_con.connect('./unidb.db');
 app.listen(port, () => {
   console.log(`DaWaMe server listening on port ${port}`)

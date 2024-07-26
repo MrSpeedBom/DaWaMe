@@ -20,8 +20,7 @@ function createTables() {
       LNAME CHAR(20) NOT NULL,
       NATIONAL_NUMBER CHAR(11),
       PHONENUMBER CHAR(10),
-      GENDER CHAR(1),
-      PASSWORD CHAR(100)
+      GENDER CHAR(1)
     );
     create table IF NOT EXISTS CHECKS (
       ID INT NOT NULL,
@@ -54,7 +53,7 @@ function checkUser(ID){
 }
 function insertUser(user) {
   ID=count_rows('USERS');
-  db.exec(`INSERT INTO USERS VALUES(${ID},'${user.NAME}','${user.MNAME}','${user.LNAME}','${user.NATIONAL_NUMBER}','${user.PHONENUMBER}','${user.GENDER}','${user.PASSWORD}')`);
+  db.exec(`INSERT INTO USERS VALUES(${ID},'${user.NAME}','${user.MNAME}','${user.LNAME}','${user.NATIONAL_NUMBER}','${user.PHONENUMBER}','${user.GENDER}')`);
   return ID;
 }
 
