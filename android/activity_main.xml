@@ -18,17 +18,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/get_button"
-        android:layout_width="123dp"
-        android:layout_height="123dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginTop="208dp"
-        android:text="GET"
-        android:textSize="28dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <TextView
         android:id="@+id/result"
         android:layout_width="400dp"
@@ -37,18 +26,7 @@
         android:layout_marginTop="368dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/post_button"
-        android:layout_width="123dp"
-        android:layout_height="123dp"
-        android:layout_marginStart="244dp"
-        android:layout_marginTop="208dp"
-        android:text="POST"
-        android:textSize="28dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
+    
     <Button
         android:id="@+id/scan_button"
         android:layout_width="123dp"

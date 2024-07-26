@@ -4,11 +4,13 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -36,17 +38,18 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.Scanner;
 
 import android.Manifest;
+import org.json.*;
 
 
 
 public class MainActivity extends AppCompatActivity {
     String appPath="/DaWaMe";
     Button storeButton;
-    Button get_button,post_button;
     TextView request_result;
     private StringRequest getRequest,postRequest;
     private RequestQueue requestQueue;
@@ -68,20 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 writeFile("hello world i am happy");
             }
         });
-        get_button=findViewById(R.id.get_button);
-        get_button.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                getRequest();
-            }
-        });
-        post_button=findViewById(R.id.post_button);
-        post_button.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                postRequest();
-            }
-        });
+
         request_result=findViewById(R.id.result);
         requestQueue=Volley.newRequestQueue(MainActivity.this);
 
@@ -125,12 +115,49 @@ public class MainActivity extends AppCompatActivity {
             }).show();
         }
     });
-    int processContent(String s){
-
-        return 1;
+    String gt(String x){
+        String r="";
+        for(int i=1;i<x.length();i++)r=r+x.charAt(i);
+        return r;
     }
-    void getRequest(){
-        String url="https://simplifiedcoding.net/demos/marvel";
+    int processContent(String s) {
+        Scanner sc=new Scanner(s);
+        String line;
+        if(!sc.hasNextLine())return 1;
+        else
+        line=sc.nextLine();
+        cipher(line,"DaWaMe");
+        line=gt(line);
+        Log.d("dep",line);
+        Log.d("dep", String.valueOf((line.length())));
+        if(!line.equals("dawame"))return 1;
+        else Log.d("dep","equals dawame");
+
+        String arr[]=new String[]{"NAME","MNAME","LNAME","PHONE_NUMBER","NATIONAL_NUMBER","GENDER","ip","port"};
+        int i=0;
+        JSONObject js=new JSONObject();
+
+        while(sc.hasNextLine()){
+            line=sc.nextLine();
+            cipher(line,"DaWaMe");
+            try{
+                Log.d("json",arr[i]);
+                Log.d("json",line);
+                js.put(arr[i],line);
+            }catch (JSONException e){
+                e.printStackTrace();
+            }
+            i++;
+        }
+        try {
+            //getRequest("https://" + js.get("ip") + ":"+js.get("port")+"/local_ip");
+            postRequest("http://" + js.get("ip") + ":"+js.get("port")+"/signup",js);
+        }catch(JSONException e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    void getRequest(String url){
         getRequest= new StringRequest(Request.Method.GET,url,
                 new Response.Listener<String>(){
                     @Override
@@ -141,38 +168,56 @@ public class MainActivity extends AppCompatActivity {
                 ,new Response.ErrorListener(){
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        request_result.setText("ERROR");
+                        request_result.setText(error.toString());
                     }
                 });
         getRequest.setTag("getRequest");
         requestQueue.add(getRequest);
     }
-    void postRequest(){
-        String url="https://reqres.in/api/users";
+    void postRequest(String url,JSONObject jsonBody){
+        Log.d("dep",url);
         String requestBody;
-        try{
-            JSONObject jsonBody=new JSONObject();
-            jsonBody.put("name","it wala");
-            requestBody=jsonBody.toString();
-            postRequest=new StringRequest(Request.Method.POST,url,
-                    new Response.Listener<String>(){
-                        @Override
-                        public void onResponse(String response) {
-                            request_result.setText(response);
-                        }
-                    },
-                    new Response.ErrorListener(){
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            request_result.setText("POST ERROR"+error.toString());
-                        }
-                    }
-                    );
-            postRequest.setTag("postRequest");
-            requestQueue.add(postRequest);
-        }catch(JSONException e){
-            e.printStackTrace();
+        requestBody=jsonBody.toString();
+        postRequest=new StringRequest(Request.Method.POST,url,
+                new Response.Listener<String>(){
+            @Override
+            public void onResponse(String response) {
+                request_result.setText(response);
+                try{
+                    JSONObject ob=new JSONObject(response);
+                    if(ob.getBoolean("state")==true)
+                    writeFile(String.valueOf(ob.get("HASH")));
+                }catch(JSONException e){
+                    e.printStackTrace();
+                }
+            }
+            },
+                new Response.ErrorListener(){
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                request_result.setText("POST ERROR"+error.toString());
+            }
         }
+        ){
+            @Override
+            public String getBodyContentType(){
+                return "application/json; charset=utf-16";
+            }
+            public byte[] getBody() throws AuthFailureError {
+                try{
+                    if (requestBody == null) return null;
+                    return requestBody.getBytes("utf-16");
+                }catch(UnsupportedEncodingException e){
+                    VolleyLog.wtf("unsupported Encoding while trying to get the bytes of %s using %s",requestBody,"utf-16");
+                    return null;
+                }
+            }
+
+        };
+        postRequest.setTag("postRequest");
+
+        Log.d("json",requestBody);
+        requestQueue.add(postRequest);
     }
 
     protected void onStop(){
@@ -189,17 +234,15 @@ public class MainActivity extends AppCompatActivity {
     public void writeFile(String text){
         File path=getApplicationContext().getFilesDir();
         try {
-
+            FileOutputStream writer=new FileOutputStream(new File(path+"/out.txt"));
+            writer.write(text.getBytes());
             Scanner sc=new Scanner(new File(path+"/out.txt"));
             String s="";
             while(sc.hasNextLine()){
                 s=s+sc.nextLine();
             }
             sc.close();
-            request_result.setText("DONE!"+s);
-            FileOutputStream writer=new FileOutputStream(new File(path+"/out.txt"));
-            writer.write(text.getBytes());
-
+            request_result.setText("registered successfully!");
         } catch (FileNotFoundException e) {
             request_result.setText("file not found");
             throw new RuntimeException(e);
@@ -207,6 +250,28 @@ public class MainActivity extends AppCompatActivity {
             request_result.setText("ioexception");
             throw new RuntimeException(e);
         }
+    }
+    void cipher(String str,String key){
+        return;
+        /*
+        int arr[]=new int[str.length()];
+        int karr[]=new int[key.length()];
+        for(int i=0;i<str.length();i++){
+            arr[i]=(int)str.charAt(i);
+        }
+        for(int i=0;i<key.length();i++){
+            karr[i]=(int)key.charAt(i);
+        }
+        for(int i=0;i<str.length();i++){
+            Log.d("dep",arr[i]+":");
+            arr[i]=arr[i]^karr[i%key.length()];
+        }
+        StringBuffer strb=new StringBuffer(str);
+        for(int i=0;i<str.length();i++){
+            strb.setCharAt(i, (char) arr[i]);
+        }
+        str=strb.toString();
+        */
     }
     public boolean checkPermissions(String permission){
         return ContextCompat.checkSelfPermission(this,permission)==PackageManager.PERMISSION_GRANTED;
