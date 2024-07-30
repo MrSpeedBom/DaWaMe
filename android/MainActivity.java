@@ -49,7 +49,6 @@ import org.json.*;
 
 public class MainActivity extends AppCompatActivity {
     String appPath="/DaWaMe";
-    Button storeButton;
     TextView request_result;
     private StringRequest getRequest,postRequest;
     private RequestQueue requestQueue;
@@ -64,13 +63,6 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this,
                 new String[] {Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.MANAGE_EXTERNAL_STORAGE},PackageManager.PERMISSION_GRANTED);
 
-        storeButton=findViewById(R.id.store);
-        storeButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                writeFile("hello world i am happy");
-            }
-        });
 
         request_result=findViewById(R.id.result);
         requestQueue=Volley.newRequestQueue(MainActivity.this);
@@ -104,7 +96,8 @@ public class MainActivity extends AppCompatActivity {
             if(res!=0){
                 builder.setMessage(result.getContents());
             }
-            else {
+            else
+            if(res==1){
                 builder.setMessage("done successfully");
             }
             builder.setPositiveButton("OK",new DialogInterface.OnClickListener(){
@@ -115,6 +108,23 @@ public class MainActivity extends AppCompatActivity {
             }).show();
         }
     });
+
+    int getID(){
+        File path=getApplicationContext().getFilesDir();
+        Scanner sc;
+        try{
+            sc=new Scanner(new File(path+"/out.txt"));
+        }catch(FileNotFoundException e){
+            return -1;
+        }
+        if(!sc.hasNextLine()){
+            return -1;
+        }
+        String s="";
+        s=sc.nextLine();
+        sc.close();
+        return Integer.parseInt(s);
+    }
     String gt(String x){
         String r="";
         for(int i=1;i<x.length();i++)r=r+x.charAt(i);
@@ -122,12 +132,11 @@ public class MainActivity extends AppCompatActivity {
     }
     int processContent(String s) {
         Scanner sc=new Scanner(s);
-        String line;
+        String line="";
         if(!sc.hasNextLine())return 1;
-        else
+        sc.nextLine();
         line=sc.nextLine();
-        cipher(line,"DaWaMe");
-        line=gt(line);
+        if(line.length()>6)line=gt(line);
         Log.d("dep",line);
         Log.d("dep", String.valueOf((line.length())));
         if(!line.equals("dawame"))return 1;
@@ -139,7 +148,11 @@ public class MainActivity extends AppCompatActivity {
 
         while(sc.hasNextLine()){
             line=sc.nextLine();
-            cipher(line,"DaWaMe");
+            if(line.equals("check")){
+                line=sc.nextLine();
+                i=-1;
+                break;
+            }
             try{
                 Log.d("json",arr[i]);
                 Log.d("json",line);
@@ -149,9 +162,34 @@ public class MainActivity extends AppCompatActivity {
             }
             i++;
         }
+        Log.d("dep",line);
+        Log.d("dep",String.valueOf(i));
+        if(i==-1){
+            Log.d("dep","check request");
+            try{
+                js.put("type",Integer.parseInt(line));
+                line=sc.nextLine();
+                i=getID();
+                if(i==-1){
+                    request_result.setText("not registered!");
+                    Log.d("dep","not registered");
+                    return 2;
+                }
+                js.put("ID",i);
+            }catch(JSONException e){
+                e.printStackTrace();
+            }
+            try{
+                Log.d("dep",String.valueOf(js.getInt("ID")));
+                Log.d("dep",String.valueOf(js.getInt("type")));
+            }catch(JSONException e){
+                e.printStackTrace();
+            }
+            postRequest("http://"+line+"/checktoday",js,false);
+            return 0;
+        }
         try {
-            //getRequest("https://" + js.get("ip") + ":"+js.get("port")+"/local_ip");
-            postRequest("http://" + js.get("ip") + ":"+js.get("port")+"/signup",js);
+            postRequest("http://" + js.get("ip") + ":"+js.get("port")+"/signup",js,true);
         }catch(JSONException e){
             e.printStackTrace();
         }
@@ -174,21 +212,24 @@ public class MainActivity extends AppCompatActivity {
         getRequest.setTag("getRequest");
         requestQueue.add(getRequest);
     }
-    void postRequest(String url,JSONObject jsonBody){
+    void postRequest(String url,JSONObject jsonBody,boolean write_to_file){
         Log.d("dep",url);
         String requestBody;
         requestBody=jsonBody.toString();
+        Log.d("dep",requestBody);
         postRequest=new StringRequest(Request.Method.POST,url,
                 new Response.Listener<String>(){
             @Override
             public void onResponse(String response) {
                 request_result.setText(response);
-                try{
-                    JSONObject ob=new JSONObject(response);
-                    if(ob.getBoolean("state")==true)
-                    writeFile(String.valueOf(ob.get("HASH")));
-                }catch(JSONException e){
-                    e.printStackTrace();
+                if(write_to_file) {
+                    try{
+                        JSONObject ob=new JSONObject(response);
+                        if(ob.getBoolean("state")==true)
+                        writeFile(String.valueOf(ob.get("HASH")));
+                    }catch(JSONException e){
+                        e.printStackTrace();
+                    }
                 }
             }
             },
@@ -236,12 +277,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             FileOutputStream writer=new FileOutputStream(new File(path+"/out.txt"));
             writer.write(text.getBytes());
-            Scanner sc=new Scanner(new File(path+"/out.txt"));
-            String s="";
-            while(sc.hasNextLine()){
-                s=s+sc.nextLine();
-            }
-            sc.close();
+
             request_result.setText("registered successfully!");
         } catch (FileNotFoundException e) {
             request_result.setText("file not found");
@@ -250,28 +286,6 @@ public class MainActivity extends AppCompatActivity {
             request_result.setText("ioexception");
             throw new RuntimeException(e);
         }
-    }
-    void cipher(String str,String key){
-        return;
-        /*
-        int arr[]=new int[str.length()];
-        int karr[]=new int[key.length()];
-        for(int i=0;i<str.length();i++){
-            arr[i]=(int)str.charAt(i);
-        }
-        for(int i=0;i<key.length();i++){
-            karr[i]=(int)key.charAt(i);
-        }
-        for(int i=0;i<str.length();i++){
-            Log.d("dep",arr[i]+":");
-            arr[i]=arr[i]^karr[i%key.length()];
-        }
-        StringBuffer strb=new StringBuffer(str);
-        for(int i=0;i<str.length();i++){
-            strb.setCharAt(i, (char) arr[i]);
-        }
-        str=strb.toString();
-        */
     }
     public boolean checkPermissions(String permission){
         return ContextCompat.checkSelfPermission(this,permission)==PackageManager.PERMISSION_GRANTED;
