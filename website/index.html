@@ -22,32 +22,48 @@
             </tr>
             </table>
           </form>
-          <button onclick="change_qr_content();">login</button>
+          <button onclick="change_qr_content('ln\ndawame\n');"> qr انشئ رمز ال</button>
+        </div>
+        <div class="form" style="padding:0%;">
+          <button onclick="createQr('ln\ndawame\ncheck\n1\n');">رمز تسجيل الدخول</button>
+          <button onclick="createQr('ln\ndawame\ncheck\n2\n');">رمز تسجيل الخروج</button>
         </div>
     </div>
     <script src="index.js"></script>
     <script src="qrcode.js"></script>
     <script type="text/javascript">
         qrcode=new QRCode(document.getElementById("qrcode"), "empty");
-        function change_qr_content(){
-          text=cypher('dawame','DaWaMe')+'\n';
-          text+=cypher(document.getElementById("name").value,'DaWaMe')+"\n";
-          text+=cypher(document.getElementById("father_name").value,'DaWaMe')+"\n";
-          text+=cypher(document.getElementById("last_name").value,'DaWaMe')+"\n";
-          text+=cypher(document.getElementById("phone_number").value,'DaWaMe')+"\n";
-          text+=cypher(document.getElementById("national_number").value,'DaWaMe')+"\n";
-          text+=cypher(document.getElementById("gender").value,'DaWaMe')+"\n";
+        function change_qr_content(str){
+          str+=document.getElementById("name").value+"\n";
+          str+=document.getElementById("father_name").value+"\n";
+          str+=document.getElementById("last_name").value+"\n";
+          str+=document.getElementById("phone_number").value+"\n";
+          str+=document.getElementById("national_number").value+"\n";
+          str+=document.getElementById("gender").value+"\n";
           try {
              const url = 'http://127.0.0.1:3000/local_ip';
              const responseData = synchronousRequest(url);
              console.log('Response data:', responseData);
-             text+=cypher(JSON.parse(responseData).ip,'DaWaMe')+"\n";
-             text+=cypher(JSON.parse(responseData).port,'DaWaMe')+"\n";
+             str+=JSON.parse(responseData).ip+"\n";
+             str+=JSON.parse(responseData).port+"\n";
           } catch (error) {
              console.error('Error:', error.message);
           }
           qrcode.clear();
-          qrcode.makeCode(text);  
+          qrcode.makeCode(str);  
+        }
+        function createQr(str){
+          try {
+             const url = 'http://127.0.0.1:3000/local_ip';
+             const responseData = synchronousRequest(url);
+             console.log('Response data:', responseData);
+             str+=JSON.parse(responseData).ip+":"+JSON.parse(responseData).port+"\n";
+             console.log(str);
+          } catch (error) {
+             console.error('Error:', error.message);
+          }
+          qrcode.clear();
+          qrcode.makeCode(str);
         }
     </script>
     
