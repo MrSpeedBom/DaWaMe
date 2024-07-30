@@ -48,10 +48,10 @@ function count_rows(table_name){
   return num;
 }
 function checkUser(ID){
-  user_exists=db.prepare(`SELECT * FROM CHECKINS WHERE ID=${ID}`).get()!=undefined;
+  user_exists=db.prepare(`SELECT * FROM USERS WHERE ID=${ID}`).get()!=undefined;
   return user_exists;
 }
-function insertUser(user) {
+function insertUser(user){
   ID=count_rows('USERS');
   db.exec(`INSERT INTO USERS VALUES(${ID},'${user.NAME}','${user.MNAME}','${user.LNAME}','${user.NATIONAL_NUMBER}','${user.PHONENUMBER}','${user.GENDER}')`);
   return ID;
@@ -60,8 +60,10 @@ function insertUser(user) {
 function insertCheckIn(ID){
   gdate=new Date();
   gdate=gdate.toISOString();
-  date=gdate.slice(0,10);
-  tim=gdate.slice(11,8);
+  console.log(gdate);
+  date=gdate.substr (0,10);
+  tim=gdate.substr(11,8);
+  console.log(tim);
   check_exists=db.prepare(`SELECT * FROM CHECKINS WHERE ID=${ID} AND AT='${date}'`).get()!=undefined;
   if(check_exists)return false;
   db.exec(`INSERT INTO CHECKINS VALUES(${ID},'${date}','${tim}')`);

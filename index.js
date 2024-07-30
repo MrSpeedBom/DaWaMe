@@ -42,8 +42,8 @@ app.get('/local_ip',(req,res)=>{
 });
 function handleCheckIn(req){
   data={}
-  if(db_con.checUser(req.body.ID)){
-    data.state=db_con.insertCheckIn(state);
+  if(db_con.checkUser(req.body.ID)){
+    data.state=db_con.insertCheckIn(req.body.ID);
     if(data.state)
     data.type='ok';
     else
@@ -57,7 +57,7 @@ function handleCheckIn(req){
 function handleCheckOut(req){
   data={}
   if(db_con.checkUser(req.body.ID)){
-    data.state=db_con.insertCheckIn(state);
+    data.state=db_con.insertCheckOut(req.body.ID);
     if(data.state)
     data.type='ok';
     else
@@ -78,7 +78,6 @@ app.post('/checktoday',(req,res)=>{
       state=false;
     }
   }
-
   if(!state){
     data.state=false;
     data.type='err_no_enough_data'
